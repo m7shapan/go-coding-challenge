@@ -25,7 +25,7 @@ func (f factRepository) GetFacts(ctx context.Context, filter *models.Filters) (f
 
 	findCondations := bson.D{}
 	if filter.Search != "" {
-		findCondations = append(findCondations, bson.E{"text", primitive.Regex{Pattern: filter.Search, Options: "i"}})
+		findCondations = append(findCondations, bson.E{Key: "text", Value: primitive.Regex{Pattern: filter.Search, Options: "i"}})
 	}
 
 	total, err = f.db.Collection(f.factCollection).CountDocuments(ctx, findCondations)
