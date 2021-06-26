@@ -9,8 +9,9 @@ import (
 const envFile = "env.yaml"
 
 type Config struct {
-	AppPort int      `yaml:"app_port"`
-	DB      DBConfig `yaml:"db"`
+	AppPort     int         `yaml:"app_port"`
+	DB          DBConfig    `yaml:"db"`
+	Certificate Certificate `yaml:"certificate"`
 }
 
 type DBConfig struct {
@@ -19,6 +20,11 @@ type DBConfig struct {
 	Database string `yaml:"database"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
+}
+
+type Certificate struct {
+	CertFile string `yaml:"cert_file"`
+	KeyFile  string `yaml:"key_file"`
 }
 
 func (c *Config) load() error {

@@ -42,13 +42,6 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// Key Authintication Validator
-	e.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		Validator: func(key string, c echo.Context) (bool, error) {
-			return keyService.IsValid(c.Request().Context(), key)
-		},
-	}))
-
 	e.HTTPErrorHandler = JSONHTTPErrorHandler
 
 	e.GET("/", func(c echo.Context) error {
@@ -57,9 +50,16 @@ func main() {
 
 	v1 := e.Group("/api/v1")
 
+	// Key Authintication Validator
+	v1.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		Validator: func(key string, c echo.Context) (bool, error) {
+			return keyService.IsValid(c.Request().Context(), key)
+		},
+	}))
+
 	v1.GET("/facts", factController.GetFacts)
 
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", appConfig.AppPort)))
+	e.Logger.Fatal(e.StartTLS(fmt.Sprintf(":%d", appConfig.AppPort), appConfig.Certificate.CertFile, appConfig.Certificate.KeyFile))
 }
 
 // JSONHTTPErrorHandler return error as models.Response to unificate response Schema
