@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"challenge/models"
 	"challenge/services"
 	"context"
+	"math"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -23,21 +25,42 @@ func NewFactController(s services.FactService) factController {
 }
 
 func (f factController) GetFacts(c echo.Context) error {
-	ctx, cancel := context.WithCancel(c.Request().Context())
-	defer cancel()
+	factsRequest := models.NewFactsRequest()
 
-	facts, err := f.factService.GetFacts(ctx)
-	if err != nil {
-		c.Logger().Error(err)
-
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"success": true,
-			"error":   "unable to process your Action",
+	if err := c.Bind(factsRequest); err != nil {
+		return c.JSON(http.StatusInternalServerError, models.Response{
+			Success: false,
+			Error:   err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"success": true,
-		"payload": facts,
+	ctx, cancel := context.WithCancel(c.Request().Context())
+	defer cancel()
+
+	limit := int64(factsRequest.PerPage)
+	skip := int64((factsRequest.Page - 1) * factsRequest.PerPage)
+
+	facts, total, err := f.factService.GetFacts(ctx, &models.Filters{
+		Search: factsRequest.Search,
+		Skip:   skip,
+		Limit:  limit,
+	})
+
+	if err != nil {
+		c.Logger().Error(err)
+
+		return c.JSON(http.StatusInternalServerError, models.Response{
+			Success: false,
+			Error:   "Internal Server Error",
+		})
+	}
+
+	return c.JSON(http.StatusOK, models.Response{
+		Success:     true,
+		Payload:     facts,
+		CurrentPage: factsRequest.Page,
+		LastPage:    int(math.Ceil(float64(total) / float64(factsRequest.PerPage))),
+		PerPage:     factsRequest.PerPage,
+		Total:       int(total),
 	})
 }

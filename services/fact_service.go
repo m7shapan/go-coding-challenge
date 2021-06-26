@@ -7,7 +7,7 @@ import (
 )
 
 type FactService interface {
-	GetFacts(context.Context) ([]models.Fact, error)
+	GetFacts(context.Context, *models.Filters) ([]models.Fact, int64, error)
 }
 
 type factService struct {
@@ -20,6 +20,6 @@ func NewFactService(r repositories.FactRepository) factService {
 	}
 }
 
-func (f factService) GetFacts(ctx context.Context) ([]models.Fact, error) {
-	return f.factRepository.GetFacts(ctx)
+func (f factService) GetFacts(ctx context.Context, filter *models.Filters) ([]models.Fact, int64, error) {
+	return f.factRepository.GetFacts(ctx, filter)
 }
