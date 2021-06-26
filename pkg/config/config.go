@@ -9,7 +9,8 @@ import (
 const envFile = "env.yaml"
 
 type Config struct {
-	DB DBConfig `yaml:"db"`
+	AppPort int      `yaml:"app_port"`
+	DB      DBConfig `yaml:"db"`
 }
 
 type DBConfig struct {
