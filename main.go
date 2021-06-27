@@ -1,17 +1,10 @@
 package main
 
 import (
-	"challenge/controllers"
-	"challenge/models"
 	"challenge/pkg/config"
 	"challenge/pkg/db"
-	"challenge/repositories"
-	"challenge/services"
-	"fmt"
-	"net/http"
+	"challenge/server"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 )
 
@@ -28,54 +21,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Info("Init app backbone")
-	factRepository := repositories.NewFactRepository(dbClient)
-	factService := services.NewFactService(factRepository)
-	factController := controllers.NewFactController(factService)
-
-	keyRepository := repositories.NewKeyRepository(dbClient)
-	keyService := services.NewKeyService(keyRepository)
-
-	e := echo.New()
-	e.HideBanner = true
-
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-
-	e.HTTPErrorHandler = JSONHTTPErrorHandler
-
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
-	})
-
-	v1 := e.Group("/api/v1")
-
-	// Key Authintication Validator
-	v1.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		Validator: func(key string, c echo.Context) (bool, error) {
-			return keyService.IsValid(c.Request().Context(), key)
-		},
-	}))
-
-	v1.GET("/facts", factController.GetFacts)
-
-	e.Logger.Fatal(e.StartTLS(fmt.Sprintf(":%d", appConfig.AppPort), appConfig.Certificate.CertFile, appConfig.Certificate.KeyFile))
-}
-
-// JSONHTTPErrorHandler return error as models.Response to unificate response Schema
-func JSONHTTPErrorHandler(err error, c echo.Context) {
-	code := http.StatusInternalServerError
-
-	var errorI interface{} = err
-	if he, ok := err.(*echo.HTTPError); ok {
-		code = he.Code
-		errorI = he.Message
+	server := server.Server{
+		AppConfig: appConfig,
+		DB:        dbClient,
 	}
 
-	c.JSON(code, models.Response{
-		Success: false,
-		Error:   errorI,
-	})
-
-	c.Logger().Error(err)
+	server.Start()
 }
