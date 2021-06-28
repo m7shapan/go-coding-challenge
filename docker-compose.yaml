@@ -11,3 +11,14 @@ services:
       - "./docker/mongo:/docker-entrypoint-initdb.d"
     ports:
       - 27017:27017
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./env.yaml:/app/env.yaml
+      - ./docker/cert:/app/docker/cert
+    restart: unless-stopped
+    ports:
+      - 1323:1323
