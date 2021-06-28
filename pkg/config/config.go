@@ -6,7 +6,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const envFile = "env.yaml"
+var envFile = "env.yaml"
 
 type Config struct {
 	AppPort     int         `yaml:"app_port"`
@@ -42,6 +42,14 @@ func (c *Config) load() error {
 }
 
 func New() (*Config, error) {
+	var c Config
+	err := c.load()
+
+	return &c, err
+}
+
+func NewWithPath(path string) (*Config, error) {
+	envFile = path
 	var c Config
 	err := c.load()
 

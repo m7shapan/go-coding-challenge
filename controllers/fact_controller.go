@@ -37,8 +37,8 @@ func (f factController) GetFacts(c echo.Context) error {
 	ctx, cancel := context.WithCancel(c.Request().Context())
 	defer cancel()
 
-	limit := int64(factsRequest.PerPage)
-	skip := int64((factsRequest.Page - 1) * factsRequest.PerPage)
+	limit := int64(math.Max(1, float64(factsRequest.PerPage)))
+	skip := int64(int(math.Max(0, float64(factsRequest.Page-1))) * factsRequest.PerPage)
 
 	facts, total, err := f.factService.GetFacts(ctx, &models.Filters{
 		Search: factsRequest.Search,

@@ -23,10 +23,10 @@ import (
 type Server struct {
 	AppConfig   *config.Config
 	DB          *mongo.Database
-	serverReady chan bool
+	ServerReady chan bool
 }
 
-func (s Server) Start() {
+func (s *Server) Start() {
 	log.Info("Init app backbone")
 	factRepository := repositories.NewFactRepository(s.DB)
 	factService := services.NewFactService(factRepository)
@@ -59,10 +59,12 @@ func (s Server) Start() {
 	v1.GET("/facts", factController.GetFacts)
 
 	// Run server on Goroutine
-	go e.Logger.Fatal(e.StartTLS(fmt.Sprintf(":%d", s.AppConfig.AppPort), s.AppConfig.Certificate.CertFile, s.AppConfig.Certificate.KeyFile))
+	go func() {
+		e.Logger.Fatal(e.StartTLS(fmt.Sprintf(":%d", s.AppConfig.AppPort), s.AppConfig.Certificate.CertFile, s.AppConfig.Certificate.KeyFile))
+	}()
 
-	if s.serverReady != nil {
-		s.serverReady <- true
+	if s.ServerReady != nil {
+		s.ServerReady <- true
 	}
 
 	// Start Listing on termination Signal
